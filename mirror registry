@@ -1,0 +1,27 @@
+Creating a mirror registry allows you to cache and serve container images locally, reducing external dependencies and improving performance. 
+Here’s how you can set up a mirror registry using Docker
+
+Pulling images from Docker Hub or other remote registries can be slow, especially if you have multiple nodes in a Kubernetes or Containerlab setup.
+A mirror registry caches images locally, reducing download times significantly
+
+
+1. Install Docker and Docker Compose
+    sudo apt update && sudo apt install -y docker.io docker-compose
+
+2. Create a local registry container
+    docker run -d -p 5000:5000 --restart=always --name registry registry:2
+
+3. If you are using containerd, edit the /etc/containerd/config.toml file
+Modify the config.toml to include your mirror
+[plugins."io.containerd.grpc.v1.cri".registry.mirrors]
+  [plugins."io.containerd.grpc.v1.cri".registry.mirrors."docker.io"]
+    endpoint = ["http://<YOUR_REGISTRY_IP>:5000"]
+
+4. If you are using containerd, edit the /etc/containerd/config.toml file
+{
+  "registry-mirrors": ["http://<YOUR_REGISTRY_IP>:5000"]
+}
+
+5. You can periodically sync images from Docker Hub using tools like skopeo:
+    skopeo copy docker://ubuntu:latest docker://<YOUR_REGISTRY_IP>:5000/ubuntu:latest
+
